@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ReferralBot.Core</RootNamespace>
+    <AssemblyName>ReferralBot.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ReferralBot.Db\ReferralBot.Db.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 12.0.1 — последняя MIT-версия без уязвимостей (13.x имеет GHSA-rv3-g6hj-g44x) -->
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+  </ItemGroup>
+
+</Project>
