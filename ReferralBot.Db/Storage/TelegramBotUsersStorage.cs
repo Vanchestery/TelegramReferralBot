@@ -61,4 +61,14 @@ public class TelegramBotUsersStorage(
 
         logger.LogInformation("Updated partner status for TelegramUserId: {Id}", telegramUserId);
     }
+
+    public async Task<IEnumerable<TelegramBotUserEntity>> GetAllPartnersAsync(CancellationToken ct = default)
+    {
+        logger.LogDebug("Getting all partner users");
+
+        return await db.TelegramBotUsers
+            .AsNoTracking()
+            .Where(u => u.IsPartner)
+            .ToListAsync(ct);
+    }
 }

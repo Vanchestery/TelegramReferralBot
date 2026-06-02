@@ -7,4 +7,5 @@ public interface ITelegramBotUsersStorage
     Task<TelegramBotUserEntity?> GetByIdAsync(long telegramUserId, CancellationToken ct = default);
     Task UpsertAsync(TelegramBotUserEntity entity, CancellationToken ct = default);
     Task UpdatePartnerStatusAsync(long telegramUserId, bool isPartner, CancellationToken ct = default);
+    Task<IEnumerable<TelegramBotUserEntity>> GetAllPartnersAsync(CancellationToken ct = default);
 }
