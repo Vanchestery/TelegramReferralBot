@@ -14,7 +14,6 @@ namespace ReferralBot.Services;
 /// </summary>
 public class TelegramUserContextConverter(
     PageStackConverter pageStackConverter,
-    PageCreator pageCreator,
     ILogger<TelegramUserContextConverter> logger)
 {
     public TelegramUserContext ToContext(TelegramBotUserState? state)
