@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>ReferralBot.Core</RootNamespace>
     <AssemblyName>ReferralBot.Core</AssemblyName>
+    <NoWarn>NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,10 @@
   <ItemGroup>
     <!-- 12.0.1 — последняя MIT-версия без уязвимостей (13.x имеет GHSA-rv3-g6hj-g44x) -->
     <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
