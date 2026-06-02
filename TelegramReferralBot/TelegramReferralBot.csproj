@@ -7,6 +7,9 @@
     <Nullable>enable</Nullable>
     <RootNamespace>ReferralBot</RootNamespace>
     <AssemblyName>ReferralBot</AssemblyName>
+    <!-- NU1903: AutoMapper 12.x имеет известную уязвимость ReDoS в валидации маппингов.
+         Все версии до 15.x уязвимы, 15+ — коммерческие. Для pet-проекта подавляем. -->
+    <NoWarn>NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Telegram.Bot" Version="22.3.0" />
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
