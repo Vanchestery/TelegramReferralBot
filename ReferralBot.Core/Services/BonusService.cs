@@ -10,6 +10,7 @@ namespace ReferralBot.Core.Services;
 public class BonusService(
     IAccountsStorage accountsStorage,
     IBonusTransactionStorage transactionStorage,
+    IPartnerService partnerService,
     ILogger<BonusService> logger) : IBonusService
 {
     public async Task<int> GetBonusBalanceAsync(long telegramUserId, CancellationToken ct = default)
@@ -82,6 +83,7 @@ public class BonusService(
 
         await transactionStorage.AddAsync(transaction, ct);
         await accountsStorage.UpsertAsync(referrerAccount, ct);
+        partnerService.InvalidateProfileCache(referrerAccount.TelegramUserId);
 
         logger.LogInformation("Accrued {Amount} bonus points to AccountId: {AccountId}", bonusAmount, referrerAccount.Id);
         return true;
@@ -126,6 +128,7 @@ public class BonusService(
 
         await transactionStorage.AddAsync(refundTransaction, ct);
         await accountsStorage.UpsertAsync(account, ct);
+        partnerService.InvalidateProfileCache(account.TelegramUserId);
 
         logger.LogInformation("Processed refund of {Amount} for AccountId: {AccountId}", refundAmount, account.Id);
         return true;
@@ -164,6 +167,7 @@ public class BonusService(
 
         await transactionStorage.AddAsync(transaction, ct);
         await accountsStorage.UpsertAsync(account, ct);
+        partnerService.InvalidateProfileCache(telegramUserId);
 
         logger.LogInformation("Credited {Amount} to TelegramUserId: {Id}", amount, telegramUserId);
         return true;
@@ -198,6 +202,7 @@ public class BonusService(
 
         await transactionStorage.AddAsync(transaction, ct);
         await accountsStorage.UpsertAsync(account, ct);
+        partnerService.InvalidateProfileCache(telegramUserId);
 
         logger.LogInformation("Debited {Amount} from TelegramUserId: {Id}", amount, telegramUserId);
         return true;
