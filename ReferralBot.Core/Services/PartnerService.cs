@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 using ReferralBot.Core.Interfaces;
@@ -9,11 +10,23 @@ namespace ReferralBot.Core.Services;
 public class PartnerService(
     IAccountsStorage accountsStorage,
     ITelegramBotUsersStorage usersStorage,
+    IMemoryCache cache,
     ILogger<PartnerService> logger) : IPartnerService
 {
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(60);
+
     public async Task<PartnerProfile?> GetProfileAsync(long telegramUserId, CancellationToken ct = default)
     {
         logger.LogDebug("Getting partner profile for TelegramUserId: {Id}", telegramUserId);
+
+        var cacheKey = $"partner_profile_{telegramUserId}";
+
+        // Проверяем кэш — профиль запрашивается при каждом открытии кабинета
+        if (cache.TryGetValue(cacheKey, out PartnerProfile? cached))
+        {
+            logger.LogDebug("Partner profile served from cache for TelegramUserId: {Id}", telegramUserId);
+            return cached;
+        }
 
         var account = await accountsStorage.GetByTelegramUserIdAsync(telegramUserId, ct);
         if (account is null)
@@ -23,12 +36,9 @@ public class PartnerService(
         }
 
         var user = await usersStorage.GetByIdAsync(telegramUserId, ct);
-
-        // Считаем сколько всего людей пригласил этот партнёр (у кого ReferrerId = account.Id)
-        // Упрощённо берём InvitedPurchasesCount из аккаунта
         var level = CalculateLevel(account.InvitedPurchasesCount);
 
-        return new PartnerProfile
+        var profile = new PartnerProfile
         {
             AccountId = account.Id,
             TelegramUserId = telegramUserId,
@@ -41,6 +51,19 @@ public class PartnerService(
             InvitedPurchasesCount = account.InvitedPurchasesCount,
             Level = level
         };
+
+        cache.Set(cacheKey, profile, CacheTtl);
+        return profile;
+    }
+
+    /// <summary>
+    /// Инвалидирует кэш профиля при изменении баланса.
+    /// Вызывается из BonusService после любой операции с бонусами.
+    /// </summary>
+    public void InvalidateProfileCache(long telegramUserId)
+    {
+        cache.Remove($"partner_profile_{telegramUserId}");
+        logger.LogDebug("Profile cache invalidated for TelegramUserId: {Id}", telegramUserId);
     }
 
     public async Task<string?> GetReferrerNameByTelegramIdAsync(long telegramUserId, CancellationToken ct = default)
