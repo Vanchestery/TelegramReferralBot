@@ -18,14 +18,12 @@ public class CSharpCoursesPage(
     {
         var courses = await courseService.GetCoursesIdTitleAsync();
 
-        // Кнопка на каждый курс: подпись — название, CallbackData — id курса.
+        // Кнопки курсов по 2 в ряд: подпись — название, CallbackData — id курса.
         var rows = courses
-            .Select(c => new[]
-            {
-                new ButtonLinqPage(
-                    InlineKeyboardButton.WithCallbackData(c.Title, c.Id.ToString()),
-                    pageCreator.CreatePage<CoursePage>())
-            })
+            .Select(c => new ButtonLinqPage(
+                InlineKeyboardButton.WithCallbackData(c.Title, c.Id.ToString()),
+                pageCreator.CreatePage<CoursePage>()))
+            .Chunk(2)
             .ToList();
 
         rows.Add([

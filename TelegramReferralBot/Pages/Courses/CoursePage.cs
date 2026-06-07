@@ -2,7 +2,9 @@ using ReferralBot.Core.Interfaces;
 using ReferralBot.Models;
 using ReferralBot.Services;
 
+using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ReferralBot.Pages.Courses;
@@ -16,7 +18,9 @@ public class CoursePage(
     PageCreator pageCreator,
     ICourseService courseService,
     IPromoCodeService promoCodeService,
-    IAccountService accountService) : CallbackQueryPageBase
+    IAccountService accountService,
+    ITelegramBotClient botClient,
+    ILogger<CoursePage> logger) : CallbackQueryPageBase
 {
     protected override async Task<string> GetRawContentAsync(TelegramUserContext context)
     {
@@ -38,6 +42,17 @@ public class CoursePage(
 
     protected override async Task<InputFile?> GetMediaContentAsync(TelegramUserContext context)
     {
+        // На карточке курса показываем «отправляет фото…», пока качаем обложку и шлём её
+        // (точнее «печатает…», которое бот выставляет в начале обработки апдейта).
+        try
+        {
+            await botClient.SendChatAction(context.TelegramId, ChatAction.UploadPhoto);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Could not send upload-photo action for course {CourseId}", context.SelectedCourseId);
+        }
+
         var logo = await courseService.GetCourseLogoAsync(context.SelectedCourseId);
         return logo is { Length: > 0 }
             ? InputFile.FromStream(new MemoryStream(logo), $"course_{context.SelectedCourseId}.png")
