@@ -45,6 +45,10 @@ public class BotService(
             var telegramUserId = GetUserId(update);
             logger.LogInformation("Processing update {UpdateId} for user {UserId}", update.Id, telegramUserId);
 
+            // Сразу показываем «печатает…»: пользователь видит, что бот работает, пока
+            // мы ходим в БД и Stepik. Индикатор держится ~5с или до отправки ответа.
+            await SendTypingActionAsync(client, update, ct);
+
             // 1. Загружаем состояние пользователя из БД
             var state = await statesService.GetByTelegramUserIdAsync(telegramUserId, ct);
             var context = contextConverter.ToContext(state);
@@ -118,6 +122,25 @@ public class BotService(
         update.Type == UpdateType.Message
             ? update.Message!.From!.Id
             : update.CallbackQuery!.From.Id;
+
+    /// <summary>
+    /// Шлёт статус «печатает…» в чат, чтобы пользователь видел, что бот занят работой
+    /// (запросы к Stepik/БД). Не критично: если не отправится — молча пропускаем.
+    /// </summary>
+    private async Task SendTypingActionAsync(ITelegramBotClient client, Update update, CancellationToken ct)
+    {
+        var chatId = update.Message?.Chat.Id ?? update.CallbackQuery?.Message?.Chat.Id;
+        if (chatId is null) return;
+
+        try
+        {
+            await client.SendChatAction(chatId.Value, ChatAction.Typing, cancellationToken: ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(ex, "Could not send chat action to chat {ChatId}", chatId);
+        }
+    }
 
     private TelegramUserContext CreateNewContext(long telegramUserId, Update update)
     {
