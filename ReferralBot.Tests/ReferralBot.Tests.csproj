@@ -12,6 +12,8 @@
   <ItemGroup>
     <ProjectReference Include="..\ReferralBot.Core\ReferralBot.Core.csproj" />
     <ProjectReference Include="..\ReferralBot.Db\ReferralBot.Db.csproj" />
+    <!-- Нужна для тестов bot-слоя (CourseService, JsonBotAPI-десериализация). -->
+    <ProjectReference Include="..\TelegramReferralBot\TelegramReferralBot.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +30,12 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="FluentAssertions" Version="6.12.1" />
     <PackageReference Include="AutoMapper" Version="12.0.1" />
+  </ItemGroup>
+
+  <!-- Тест ссылается на bot (Web SDK): для загрузки его сборки в рантайме и для
+       ConfigurationBuilder/AddInMemoryCollection подключаем ASP.NET shared framework. -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>
