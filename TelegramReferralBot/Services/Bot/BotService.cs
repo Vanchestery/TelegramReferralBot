@@ -174,7 +174,7 @@ public class BotService(
     {
         try
         {
-            var adminId = config.GetValue<long>("JOSEPH_TELEGRAM_ID");
+            var adminId = config.GetValue<long>("ADMIN_TELEGRAM_ID");
             var from = update.Message!.From!;
             var text = update.Message.Text;
 
