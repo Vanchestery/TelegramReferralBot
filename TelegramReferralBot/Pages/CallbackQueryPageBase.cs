@@ -64,7 +64,9 @@ public abstract class CallbackQueryPageBase : IPage
             .SelectMany(row => row)
             .FirstOrDefault(b => b.Button.CallbackData == callbackData);
 
-        if (button is null)
+        // button is null — кнопка не найдена; button.Page is null — это URL-кнопка
+        // (внутренней навигации нет). В обоих случаях перерисовываем текущую страницу.
+        if (button?.Page is null)
             return await ViewAsync(update, context);
 
         var nextPageResult = await button.Page.ViewAsync(update, context);

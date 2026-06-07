@@ -7,4 +7,5 @@ public class TelegramBotUserState
     public int CurrentMessageId { get; set; }
     public bool IsWelcomeMessageSent { get; set; }
     public bool IsMediaContent { get; set; }
+    public int SelectedCourseId { get; set; }
 }

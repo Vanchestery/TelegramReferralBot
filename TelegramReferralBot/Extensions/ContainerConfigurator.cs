@@ -36,6 +36,11 @@ public static class ContainerConfigurator
 
         ConfigureStepikApiClient(services);
 
+        // Курсы: ICourseService поверх Stepik (список/детали/обложка + кэш) и
+        // IPromoCodeService — hex промокода партнёра для ссылки оплаты со скидкой.
+        services.AddScoped<ICourseService, CourseService>();
+        services.AddScoped<IPromoCodeService, PromoCodeService>();
+
         // BackgroundService — ежедневная рассылка статистики партнёрам
         services.AddHostedService<DailyStatsNotificationService>();
 
@@ -148,7 +153,7 @@ public static class ContainerConfigurator
     /// </summary>
     private static void ConfigureStepikApiClient(IServiceCollection services)
     {
-        services.AddHttpClient<StepikApiClient>(client =>
+        services.AddHttpClient<IStepikApiClient, StepikApiClient>(client =>
         {
             client.BaseAddress = new Uri("https://stepik.org/api/");
             client.Timeout = TimeSpan.FromSeconds(15);
