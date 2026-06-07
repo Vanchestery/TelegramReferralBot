@@ -25,4 +25,7 @@ public class TelegramBotUserStateEntity
 
     /// <summary>Последнее сообщение бота содержало медиа (фото/видео) — влияет на метод отправки следующего.</summary>
     public bool IsMediaContent { get; set; } = false;
+
+    /// <summary>Выбранный пользователем курс — нужен карточке курса между апдейтами.</summary>
+    public int SelectedCourseId { get; set; } = 0;
 }

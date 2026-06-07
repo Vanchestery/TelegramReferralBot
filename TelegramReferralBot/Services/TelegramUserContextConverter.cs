@@ -28,7 +28,8 @@ public class TelegramUserContextConverter(
                 TelegramId = state.TelegramUserId,
                 Pages = pageStackConverter.ToStack(state.PageNames),
                 LastMessage = new TelegramBotMessageDto(state.CurrentMessageId, state.IsMediaContent),
-                IsWelcomeMessageSent = state.IsWelcomeMessageSent
+                IsWelcomeMessageSent = state.IsWelcomeMessageSent,
+                SelectedCourseId = state.SelectedCourseId
             };
         }
         catch (Exception ex)
@@ -46,7 +47,8 @@ public class TelegramUserContextConverter(
             PageNames = pageStackConverter.ToIds(context.Pages),
             CurrentMessageId = context.LastMessage?.TelegramMessageId ?? 0,
             IsMediaContent = context.LastMessage?.IsMedia ?? false,
-            IsWelcomeMessageSent = context.IsWelcomeMessageSent
+            IsWelcomeMessageSent = context.IsWelcomeMessageSent,
+            SelectedCourseId = context.SelectedCourseId
         };
     }
 }

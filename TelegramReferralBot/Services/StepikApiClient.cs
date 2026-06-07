@@ -16,9 +16,13 @@ namespace ReferralBot.Services;
 /// пулом HttpMessageHandler и переиспользует соединения.
 /// </summary>
 public class StepikApiClient(HttpClient httpClient, IConfiguration config, ILogger<StepikApiClient> logger)
+    : IStepikApiClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
+        // Stepik отдаёт snake_case (is_public, display_price, ...). Naming policy
+        // маппит их на PascalCase-свойства без атрибутов на каждом поле модели.
+        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         PropertyNameCaseInsensitive = true
     };
 
@@ -67,40 +71,84 @@ public class StepikApiClient(HttpClient httpClient, IConfiguration config, ILogg
     }
 
     /// <summary>
-    /// Получает список курсов преподавателя.
-    /// Polly автоматически повторяет запрос при 5xx ошибках (до 3 раз с exponential backoff).
+    /// Получает список курсов преподавателя (со всех страниц пагинации).
+    ///
+    /// Токен необязателен: список публичных курсов Stepik отдаёт и без авторизации.
+    /// Если токен передан — добавляем его per-request, не мутируя DefaultRequestHeaders
+    /// общего typed-клиента (это безопаснее при конкурентных запросах).
+    /// Polly повторяет запрос при 5xx (до 3 раз с exponential backoff).
     /// </summary>
     public async Task<IEnumerable<StepikCourse>> GetTeacherCoursesAsync(
-        int teacherId, string accessToken, CancellationToken ct = default)
+        int teacherId, string? accessToken = null, CancellationToken ct = default)
     {
-        logger.LogDebug("Fetching courses for teacher {TeacherId}", teacherId);
+        const int maxPages = 20; // страховка от бесконечного цикла пагинации
+        var all = new List<StepikCourse>();
 
-        httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", accessToken);
+        for (var page = 1; page <= maxPages; page++)
+        {
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get, $"https://stepik.org/api/courses?teacher={teacherId}&page={page}");
+
+            if (!string.IsNullOrEmpty(accessToken))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            try
+            {
+                var response = await httpClient.SendAsync(request, ct);
+                response.EnsureSuccessStatusCode();
+
+                var json = await response.Content.ReadAsStringAsync(ct);
+                var root = JsonSerializer.Deserialize<CoursesResponse>(json, JsonOptions);
+
+                if (root?.Courses is { Count: > 0 })
+                    all.AddRange(root.Courses);
+
+                if (root?.Meta?.HasNext != true)
+                    break;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to fetch courses page {Page} for teacher {TeacherId}", page, teacherId);
+                break;
+            }
+        }
+
+        logger.LogInformation("Fetched {Count} courses for teacher {TeacherId}", all.Count, teacherId);
+        return all;
+    }
+
+    /// <summary>
+    /// Получает один курс по id. Токен необязателен для публичных курсов.
+    /// </summary>
+    public async Task<StepikCourse?> GetCourseByIdAsync(
+        int courseId, string? accessToken = null, CancellationToken ct = default)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get, $"https://stepik.org/api/courses/{courseId}");
+
+        if (!string.IsNullOrEmpty(accessToken))
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         try
         {
-            var response = await httpClient.GetAsync(
-                $"https://stepik.org/api/courses?teacher={teacherId}", ct);
-
+            var response = await httpClient.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 
             var json = await response.Content.ReadAsStringAsync(ct);
             var root = JsonSerializer.Deserialize<CoursesResponse>(json, JsonOptions);
-
-            logger.LogInformation("Fetched {Count} courses for teacher {TeacherId}",
-                root?.Courses?.Count ?? 0, teacherId);
-
-            return root?.Courses ?? [];
+            return root?.Courses?.FirstOrDefault();
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to fetch courses for teacher {TeacherId}", teacherId);
-            return [];
+            logger.LogError(ex, "Failed to fetch course {CourseId}", courseId);
+            return null;
         }
     }
 
     // DTO для десериализации ответов Stepik API
     private record TokenResponse([property: JsonPropertyName("access_token")] string AccessToken);
-    private record CoursesResponse([property: JsonPropertyName("courses")] List<StepikCourse> Courses);
+    private record CoursesMeta([property: JsonPropertyName("has_next")] bool HasNext);
+    private record CoursesResponse(
+        [property: JsonPropertyName("meta")] CoursesMeta? Meta,
+        [property: JsonPropertyName("courses")] List<StepikCourse>? Courses);
 }

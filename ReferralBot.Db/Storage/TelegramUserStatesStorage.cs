@@ -37,6 +37,7 @@ public class TelegramUserStatesStorage(
             existing.CurrentMessageId = entity.CurrentMessageId;
             existing.IsWelcomeMessageSent = entity.IsWelcomeMessageSent;
             existing.IsMediaContent = entity.IsMediaContent;
+            existing.SelectedCourseId = entity.SelectedCourseId;
         }
 
         await db.SaveChangesAsync(ct);
