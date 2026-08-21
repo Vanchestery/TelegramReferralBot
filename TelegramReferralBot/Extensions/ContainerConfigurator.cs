@@ -59,7 +59,7 @@ public static class ContainerConfigurator
             .Configure<IConfiguration>((cfg, config) =>
             {
                 cfg.Token = config["REF_BOT_KEY"] ?? string.Empty;
-                cfg.WebhookUrl = config["REF_BOT_WEBHOOK_URL"] ?? string.Empty;
+                cfg.WebhookUrl = WebhookUrlResolver.Resolve(config) ?? string.Empty;
             })
             .Validate(cfg =>
                 !string.IsNullOrEmpty(cfg.Token) &&

@@ -12,6 +12,7 @@ namespace ReferralBot.Pages.Partner;
 public class PartnerHomePage(
     PageCreator pageCreator,
     IPartnerService partnerService,
+    IAccountService accountService,
     ITelegramBotUserService telegramBotUserService,
     IReferralLinkService referralLinkService,
     IConfiguration config,
@@ -20,6 +21,7 @@ public class PartnerHomePage(
     protected override async Task<string> GetRawContentAsync(TelegramUserContext context)
     {
         await telegramBotUserService.UpdatePartnerStatusAsync(context.TelegramId, true);
+        await accountService.GetOrCreateAsync(context.TelegramId);
 
         var profile = await partnerService.GetProfileAsync(context.TelegramId);
         if (profile is null)
