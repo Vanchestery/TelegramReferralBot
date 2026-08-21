@@ -1,12 +1,41 @@
-# IRON PROGRAMMER — реферальный Telegram-бот
+# TelegramReferralBot
 
-Telegram-бот партнёрской («Пригласи друга») программы школы программирования IRON PROGRAMMER.
-Пользователь выбирает курсы, получает реферальные ссылки и бонусы-кэшбек, а партнёрам
-доступен личный кабинет и покупка курсов со скидкой по персональному промокоду.
+[![CI](https://github.com/Vanchestery/TelegramReferralBot/actions/workflows/ci.yml/badge.svg)](https://github.com/Vanchestery/TelegramReferralBot/actions/workflows/ci.yml)
+![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat-square&logo=dotnet)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql)
+![Telegram](https://img.shields.io/badge/Telegram.Bot-22-26A5E4?style=flat-square&logo=telegram)
+![Tests](https://img.shields.io/badge/tests-10%20passing-success?style=flat-square)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Проект — переписанная для портфолио версия боевого бота: чистая многослойная
-архитектура, async-движок страниц, интеграция со Stepik API, REST API для платёжной
-системы и покрытие тестами.
+Telegram-бот партнёрской («Пригласи друга») программы для онлайн-курсов.
+Пользователь выбирает курсы, получает реферальные ссылки и бонусы-кэшбек; партнёрам
+доступен личный кабинет и покупка со скидкой по персональному промокоду.
+
+Pet-проект уровня portfolio: многослойная архитектура, async-движок страниц,
+интеграция со Stepik API, REST для платёжной системы, 10 unit-тестов.
+
+---
+
+## Highlights (для ревьюера / HR)
+
+| | |
+|---|---|
+| **Stack** | ASP.NET Core 9 · EF Core · PostgreSQL · Telegram.Bot 22 · Polly · Serilog |
+| **Patterns** | Page engine (`IPage` + stack) · webhook · Stepik cache · payment REST webhooks |
+| **Quality** | 10 xUnit/Moq tests · snake_case Update deserialization · Polly retry для Stepik |
+| **Integrations** | Stepik public API · ngrok webhook · Docker Compose |
+
+---
+
+## Скриншоты
+
+> Скрины добавь в `docs/screenshots/` — см. [инструкцию](docs/screenshots/README.md).
+
+| Каталог курсов | Карточка курса | Личный кабинет |
+|----------------|----------------|----------------|
+| *(catalog.png)* | *(course.png)* | *(partner.png)* |
+
+---
 
 ## Возможности
 
@@ -80,11 +109,23 @@ global tool `dotnet-ef`.
 dotnet test
 ```
 
-Покрыты: каталог курсов (`CourseService` — фильтрация, кэш, маппинг), промокоды
-(`PromoCodeService`), регресс на десериализацию входящего `Update` от Telegram.
+10 unit-тестов (xUnit + Moq): каталог курсов (`CourseService` — фильтрация, кэш, маппинг),
+промокоды (`PromoCodeService`), регресс на десериализацию входящего `Update` от Telegram.
 
 ## Заметки по реализации
 
 - **Webhook + Telegram.Bot 22**: входящий `Update` приходит в snake_case, поэтому в контроллере он десериализуется через `JsonBotAPI.Options` (а не дефолтным сериализатором ASP.NET Core) — иначе валидация модели рубит запрос с 400.
 - **Stepik**: список курсов и детали — публичные эндпоинты (`courses?teacher=`, `courses/{id}`), токен опционален; обложка скачивается из `cover`.
 - **Устойчивость**: запросы к Stepik обёрнуты в Polly-retry; ошибки сети не роняют отправку ответа.
+
+## CI/CD
+
+GitHub Actions в `.github/workflows/ci.yml`: push/PR → restore → build (Release) → test.
+
+## Лицензия
+
+[MIT](LICENSE) © 2026.
+
+---
+
+**Связь:** [GitHub профиль](https://github.com/Vanchestery)
