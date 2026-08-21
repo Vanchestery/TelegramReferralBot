@@ -29,11 +29,9 @@ Pet-проект уровня portfolio: многослойная архитек
 
 ## Скриншоты
 
-> Скрины добавь в `docs/screenshots/` — см. [инструкцию](docs/screenshots/README.md).
-
 | Каталог курсов | Карточка курса | Личный кабинет |
 |----------------|----------------|----------------|
-| *(catalog.png)* | *(course.png)* | *(partner.png)* |
+| ![Каталог курсов](docs/screenshots/catalog.png) | ![Карточка курса](docs/screenshots/course.png) | ![Личный кабинет](docs/screenshots/partner.png) |
 
 ---
 
